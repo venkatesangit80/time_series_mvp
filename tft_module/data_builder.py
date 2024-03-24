@@ -31,3 +31,9 @@ def build_tft_data(data: pd.DataFrame, config: dict):
     processed_data = data[[target] + static_categorical_vars + static_real_vars + known_categorical_vars + known_real_vars + [time_var]]
 
     return processed_data
+
+"""
+from input_data import synthetic_data
+data, config = synthetic_data()
+processed_data = build_tft_data(data, config)
+"""
