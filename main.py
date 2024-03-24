@@ -24,5 +24,6 @@ if __name__ == '__main__':
 
     # Make predictions using the best model
     predictions = make_predictions(best_model, data)
+    print(predictions)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
