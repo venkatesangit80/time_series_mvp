@@ -2,3 +2,4 @@ torch
 optuna
 numpy
 pandas
+pytorch-forecasting
