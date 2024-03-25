@@ -29,6 +29,10 @@ def build_tft_data(data: pd.DataFrame, config: dict):
     # Implement data processing logic here
     # For example, let's just select the columns specified in the config
     processed_data = data[[target] + static_categorical_vars + static_real_vars + known_categorical_vars + known_real_vars + [time_var]]
+    processed_data['time_idx'] = data['time_idx']
+    processed_data['holiday'] = data['holiday']
+    processed_data['maintenance'] = data['maintenance']
+    processed_data['time_stamp_data'] = data['timestamp']
 
     return processed_data
 
