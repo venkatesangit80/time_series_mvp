@@ -2,6 +2,8 @@ import optuna
 from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
 from pytorch_forecasting.metrics import SMAPE
 from tft_module.data_builder import build_tft_data
+import pandas as pd
+from pytorch_forecasting.data.encoders import NaNLabelEncoder
 
 def create_and_train_tft_model(trial, dataset):
     """
@@ -66,7 +68,19 @@ def optimize_hyperparameters(data, config):
     processed_data = build_tft_data(data, config)
 
     # Create a TimeSeriesDataSet from the processed data
-    dataset = TimeSeriesDataSet(processed_data, ...)
+    dataset = TimeSeriesDataSet(
+        processed_data,
+        target="cpu_utilization",
+        group_ids=["timestamp"],
+        time_idx="time_idx",
+        min_encoder_length=12,  # adjust this
+        max_encoder_length=24,  # adjust this
+        min_prediction_length=1,  # adjust this
+        max_prediction_length=6,  # adjust this
+        time_varying_known_reals=["cpu_cores", "mem_allocated", "holiday", "maintenance"],  # adjust this
+        time_varying_unknown_reals=["cpu_utilization", "mem_utilization"],  # adjust this
+        categorical_encoders={"timestamp": NaNLabelEncoder(add_nan=True)}
+    )
 
     # Create an Optuna study
     study = optuna.create_study(direction="minimize")

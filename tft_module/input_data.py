@@ -3,7 +3,7 @@ import numpy as np
 
 def synthetic_data():
     # Generate a date range for 13 months daily data
-    date_range = pd.date_range(start='2020-01-01', end='2021-02-01', freq='D')
+    date_range = pd.date_range(start='2020-01-01 00:00:00', end='2021-02-01 00:00:00', freq='D')
 
     data = pd.DataFrame({
         'timestamp': date_range,
@@ -14,11 +14,17 @@ def synthetic_data():
         'outage_planned': np.random.randint(0, 2, size=len(date_range))  # Randomly generated, replace with your actual data
     })
 
+    data['time_idx'] = (data['timestamp'] - data['timestamp'].min()) / pd.Timedelta(
+        days=1)
+    data['time_idx'] = data['time_idx'].astype(int)
+
     # Add a 'holiday' column: 1 if the day is Saturday or Sunday, 0 otherwise
     data['holiday'] = data['timestamp'].apply(lambda x: 1 if x.weekday() >= 5 else 0)
 
     # Add a 'maintenance' column: 1 if the day is the first day of a quarter, 0 otherwise
     data['maintenance'] = data['timestamp'].apply(lambda x: 1 if (x.is_quarter_start) else 0)
+
+    data['timestamp'] = data['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
 
     config = {
         'target': 'cpu_utilization',
