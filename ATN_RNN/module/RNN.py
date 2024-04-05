@@ -69,6 +69,11 @@ class RNN(nn.Module):
         self.epoch_losses = np.zeros(self.epochs)
 
         n_iter = 0
+        self.best_loss = 0.0
+        self.best_y_test = None
+        self.best_y_train = None
+
+
 
         for epoch in range(self.epochs):
             if self.shuffle:
@@ -114,6 +119,10 @@ class RNN(nn.Module):
                 y_train_pred = self.test(on_train=True)
                 y_test_pred = self.test(on_train=False)
                 y_pred = np.concatenate((y_train_pred, y_test_pred))
+                if (self.best_loss == 0.0 or self.best_loss > self.epoch_losses[epoch]):
+                    self.best_loss = self.epoch_losses[epoch]
+                    self.best_y_test = y_test_pred
+                    self.best_y_train = y_train_pred
                 plt.ioff()
                 plt.figure()
                 plt.plot(range(1, 1 + len(self.y)), self.y, label="True")
@@ -199,3 +208,29 @@ class RNN(nn.Module):
             i += self.batch_size
 
         return y_pred
+
+    def predict_next_30_days(self):
+        # Initialize with the last available data
+        X_last = self.X[-self.T+1:, :]
+        y_last = self.y[-self.T+1:]
+
+        predictions = []
+
+        for _ in range(90):  # For each day in the next 30 days
+            # Prepare the input for prediction
+            X_pred = torch.from_numpy(X_last).type(torch.FloatTensor).to(self.device)
+            y_hist_pred = torch.from_numpy(y_last).type(torch.FloatTensor).to(self.device)
+
+            # Predict the next day
+            _, input_encoded = self.Encoder(X_pred.unsqueeze(0))
+            next_day_pred = self.Decoder(input_encoded, y_hist_pred.unsqueeze(0)).cpu().data.numpy()[:, 0]
+            next_day_pred_repeated = np.repeat(next_day_pred, 6).reshape(1, -1)
+
+            # Update X_last and y_last to include the predicted value for the next prediction
+            X_last = np.vstack((X_last[1:], next_day_pred_repeated))
+            y_last = np.append(y_last[1:], next_day_pred)
+
+            # Store the prediction
+            predictions.append(next_day_pred)
+
+        return predictions

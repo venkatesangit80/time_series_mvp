@@ -44,7 +44,7 @@ nhidden_encoder = 128
 nhidden_decoder = 128
 ntimestep = 10
 lr = 0.001
-epochs = 50
+epochs = 300
 
 # Read dataset
 print("==> Load dataset ...")
@@ -70,6 +70,8 @@ model.train()
 # Prediction
 y_pred = model.test()
 
+y_future = model.predict_next_30_days()
+
 fig1 = plt.figure()
 plt.semilogy(range(len(model.iter_losses)), model.iter_losses)
 plt.savefig("1.png")
@@ -86,4 +88,21 @@ plt.plot(model.y[model.train_timesteps:], label="True")
 plt.legend(loc='upper left')
 plt.savefig("3.png")
 plt.close(fig3)
+
+fig4 = plt.figure()
+plt.plot(y_future, label='Future')
+plt.plot(model.y[model.train_timesteps:], label="True")
+plt.legend(loc='upper left')
+plt.savefig("4.png")
+plt.close(fig4)
+
+fig = plt.figure()
+plt.plot(model.y, label='All Data')
+#plt.plot(range(model.train_timesteps), model.y[:model.train_timesteps], label='Train')
+#plt.plot(range(model.train_timesteps, len(y_pred) + model.train_timesteps), y_pred, label='Test')
+plt.plot(range(len(model.y), len(model.y) + len(y_future)), y_future, label='Future')
+plt.legend(loc='upper left')
+plt.savefig("past_to_future_90.png")
+plt.close(fig)
+
 print('Finished Training')
