@@ -59,7 +59,8 @@ class RNN(nn.Module):
 
         # Training set
         self.train_timesteps = int(self.X.shape[0] * 0.7)
-        self.y = self.y - np.mean(self.y[:self.train_timesteps])
+        self.mean_train = np.mean(self.y[:self.train_timesteps])
+        self.y = self.y - self.mean_train
         self.input_size = self.X.shape[1]
 
     def train(self):
@@ -216,7 +217,9 @@ class RNN(nn.Module):
 
         predictions = []
 
-        for _ in range(90):  # For each day in the next 30 days
+
+
+        for _ in range(30):  # For each day in the next 30 days
             # Prepare the input for prediction
             X_pred = torch.from_numpy(X_last).type(torch.FloatTensor).to(self.device)
             y_hist_pred = torch.from_numpy(y_last).type(torch.FloatTensor).to(self.device)
@@ -231,6 +234,9 @@ class RNN(nn.Module):
             y_last = np.append(y_last[1:], next_day_pred)
 
             # Store the prediction
-            predictions.append(next_day_pred)
+            next_day_pred_final = next_day_pred + self.mean_train
+            predictions.append(next_day_pred_final)
 
+
+        self.y = self.y + self.mean_train
         return predictions
