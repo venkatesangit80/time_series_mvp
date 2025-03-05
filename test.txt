@@ -1,31 +1,29 @@
 import pandas as pd
+import ace_tools as tools
 
-# Example DataFrame 1 (server data)
-df1 = pd.DataFrame({
-    'server_range': [(10, 20), (30, 50), (60, 80)],
-    'mem_range': [(100, 200), (250, 300), (400, 500)]
-})
-
-# Example DataFrame 2 (range index data)
+# Define the range index DataFrame (df2)
 df2 = pd.DataFrame({
-    'range': [(0, 25), (26, 55), (56, 100)],
-    'range_index': [1, 2, 3]
+    'range': [(1, 10), (2, 20), (3, 30), (4, 40)],
+    'range_index': [1, 2, 3, 4]
 })
 
-# Convert tuples to IntervalIndex for efficient range lookups
+# Convert tuples to IntervalIndex for efficient lookups
 df2['interval'] = pd.IntervalIndex.from_tuples(df2['range'], closed='both')
 
-# Function to find the index of the matching range
-def map_range_to_index(range_tuple, interval_series):
-    for idx, interval in interval_series.items():
-        if interval.left <= range_tuple[0] and interval.right >= range_tuple[1]:
-            return df2.loc[idx, 'range_index']
-    return None  # Return None if no match found
+# Define the server and memory range DataFrame (df1)
+df1 = pd.DataFrame({
+    'server_range': [(2, 20), (4, 40), (3, 30), (1, 10)],
+    'mem_range': [(3, 30), (1, 10), (4, 40), (2, 20)]
+})
 
-# Apply the mapping for server_range and mem_range
-df1['range_index'] = df1['server_range'].apply(lambda x: map_range_to_index(x, df2['interval']))
-df1['mem_range_index'] = df1['mem_range'].apply(lambda x: map_range_to_index(x, df2['interval']))
+# Function to map the range to its index based on df2
+def map_range_to_index(range_tuple):
+    match = df2[df2['interval'].apply(lambda x: x.left == range_tuple[0] and x.right == range_tuple[1])]
+    return match['range_index'].values[0] if not match.empty else None
+
+# Apply mapping for both server_range and mem_range
+df1['range_index'] = df1['server_range'].apply(map_range_to_index)
+df1['mem_range_index'] = df1['mem_range'].apply(map_range_to_index)
 
 # Display the result
-import ace_tools as tools
 tools.display_dataframe_to_user(name="Mapped DataFrame", dataframe=df1)
